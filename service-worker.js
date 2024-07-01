@@ -19,7 +19,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     //
 
 
-    async function captureAndCropScreenshot() {
+    async function captureAndCropScreenshot(rect) {
       try {
         console.log('Capturing and cropping screenshot...');
         // Step 1: Capture the screenshot
@@ -44,10 +44,13 @@ chrome.commands.onCommand.addListener(async (command) => {
         ctx.drawImage(imgBitmap, 0, 0);
 
         // Step 4: Crop the desired area from the canvas
-        const cropWidth = 500;  // Change to your desired width
-        const cropHeight = 1000; // Change to your desired height
-        const cropX = 50;       // Change to your desired x coordinate
-        const cropY = 50;       // Change to your desired y coordinate
+
+        const { x, y, width, height } = rect;
+        const cropWidth = Math.floor(width);
+        const cropHeight = Math.floor(height);
+        const cropX = Math.floor(x);
+        const cropY = Math.floor(y);
+
 
         const croppedCanvas = new OffscreenCanvas(cropWidth, cropHeight);
         const croppedCtx = croppedCanvas.getContext('2d');
@@ -68,26 +71,42 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
     }
 
-    const screenshotUrl = await captureAndCropScreenshot();
-
+    //
 
     const result = await chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: () => {
         // Get the currently focused element
         const focusedElement = document.activeElement;
+        const rect = focusedElement?.getBoundingClientRect() || null;
+        return rect ? {
+          x: Math.floor(rect.left),
+          y: Math.floor(rect.top),
+          width: Math.floor(rect.width),
+          height: Math.floor(rect.height)
+        } : null;
+      }
+    });
+
+    const rect = result[0]?.result || { x: 0, y: 0, width: 400, height: 1000 };
+
+    const screenshotUrl = await captureAndCropScreenshot(rect);
+
+    const focusedElementHTML = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        const focusedElement = document.activeElement;
         return focusedElement?.outerHTML || null;
       }
     });
 
-
-    const focusedElement = result[0]?.result || "";
-
-    const htmlElement = focusedElement;
+    const htmlElement = focusedElementHTML[0]?.result || "";
 
     console.log('Focused element acquired');
-
     console.log(htmlElement);
+
+
+    //
 
 
     const viewTabUrl = chrome.runtime.getURL('screenshot.html');
