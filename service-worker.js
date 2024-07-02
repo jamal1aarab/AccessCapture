@@ -2,7 +2,7 @@ console.log("Background script running...");
 
 // Listen for a click on the camera icon. On that click, take a screenshot.
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command === "screenshot") {
+  if (command === "get-element") {
     console.log("Capturing screenshot...");
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -148,6 +148,85 @@ chrome.commands.onCommand.addListener(async (command) => {
     const tab2 = await chrome.tabs.create({ url: viewTabUrl });
     targetId = tab2.id;
 
+  }
+
+  //
+
+  if (command === "screenshot-element") {
+    console.log("Capturing screenshot...");
+
+
+
+
+  }
+
+
+  //
+
+  if (command === "inspect-element") {
+    console.log("Inspecting element...");
+
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab) {
+      console.error("No active tab found");
+      return;
+    }
+
+
+    const tabId = tab.id;
+
+
+    const focusedElementHTML = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      func: () => {
+        const focusedElement = document.activeElement;
+        if (focusedElement && focusedElement !== document.body && focusedElement !== document.documentElement) {
+
+          console.log(focusedElement.outerHTML);
+
+          return focusedElement.outerHTML;
+        } else {
+          return "No element focused on";
+        }
+      }
+    });
+
+
+    const textToCopy = focusedElementHTML[0]?.result || "";
+
+    // When the browser action is clicked, `addToClipboard()` will use an offscreen
+    // document to write the value of `textToCopy` to the system clipboard.
+    await addToClipboard(textToCopy);
+
+    // Solution 1 - As of Jan 2023, service workers cannot directly interact with
+    // the system clipboard using either `navigator.clipboard` or
+    // `document.execCommand()`. To work around this, we'll create an offscreen
+    // document and pass it the data we want to write to the clipboard.
+    async function addToClipboard(value) {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: [chrome.offscreen.Reason.CLIPBOARD],
+        justification: 'Write text to the clipboard.'
+      });
+
+      // Now that we have an offscreen document, we can dispatch the
+      // message.
+      chrome.runtime.sendMessage({
+        type: 'copy-data-to-clipboard',
+        target: 'offscreen-doc',
+        data: value
+      });
+    }
+
+    // no longer works
+
+    // Solution 2 – Once extension service workers can use the Clipboard API,
+    // replace the offscreen document based implementation with something like this.
+    // eslint-disable-next-line no-unused-vars -- This is an alternative implementation
+    async function addToClipboardV2(value) {
+      navigator.clipboard.writeText(value);
+    }
   }
 
 });

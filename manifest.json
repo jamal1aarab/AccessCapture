@@ -6,11 +6,23 @@
     "service_worker": "service-worker.js"
   },
   "commands": {
-    "screenshot": {
+    "get-element": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U"
+      },
+      "description": "Take a screenshot"
+    },
+    "screenshot": { 
       "suggested_key": {
         "default": "Ctrl+Shift+Y"
       },
       "description": "Take a screenshot"
+    },
+    "inspect-element": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Inspect an element on the page"
     }
   },
   "action": {
@@ -19,7 +31,9 @@
   "permissions": [
     "activeTab",
     "tabs",
-    "scripting"
+    "scripting",
+    "offscreen",
+    "clipboardWrite"
   ],
   "manifest_version": 3
 }
