@@ -12,7 +12,7 @@
       },
       "description": "Take a screenshot"
     },
-    "screenshot": { 
+    "screenshot-element": { 
       "suggested_key": {
         "default": "Ctrl+Shift+Y"
       },
