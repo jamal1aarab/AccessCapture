@@ -79,26 +79,43 @@ chrome.commands.onCommand.addListener(async (command) => {
         // Get the currently focused element
         const focusedElement = document.activeElement;
         const rect = focusedElement?.getBoundingClientRect() || null;
+        const padding = 5; // Adjust the padding value as needed
         return rect ? {
-          x: Math.floor(rect.left),
-          y: Math.floor(rect.top),
-          width: Math.floor(rect.width),
-          height: Math.floor(rect.height)
+          x: Math.floor(rect.left) - padding,
+          y: Math.floor(rect.top) - padding,
+          width: Math.floor(rect.width) + 2 * padding,
+          height: Math.floor(rect.height) + 2 * padding
         } : null;
       }
     });
+
 
     const rect = result[0]?.result || { x: 0, y: 0, width: 400, height: 1000 };
 
     const screenshotUrl = await captureAndCropScreenshot(rect);
 
+    //
+
     const focusedElementHTML = await chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: () => {
         const focusedElement = document.activeElement;
-        return focusedElement?.outerHTML || null;
+        if (focusedElement && focusedElement !== document.body && focusedElement !== document.documentElement) {
+          const escapedHTML = escapeHtml(focusedElement.outerHTML);
+
+          function escapeHtml(html) {
+            return html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          }
+
+          return `Here is the HTML of the focused element:
+           ${escapedHTML}`;
+        } else {
+          return "No element focused on";
+        }
       }
     });
+
+
 
     const htmlElement = focusedElementHTML[0]?.result || "";
 
