@@ -1,0 +1,45 @@
+{
+  "name": "Test Screenshot Extension",
+  "version": "1.3",
+  "description": "Uses the chrome.tabs API to take a screenshot of the active tab.",
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ],
+  "commands": {
+    "get-element": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U"
+      },
+      "description": "Take a screenshot"
+    },
+    "screenshot-element": { 
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y"
+      },
+      "description": "Take a screenshot"
+    },
+    "inspect-element": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E"
+      },
+      "description": "Inspect an element on the page"
+    }
+  },
+  "action": {
+    "default_title": "Take a screen shot!"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting",
+    "offscreen",
+    "clipboardWrite"
+  ],
+  "manifest_version": 3
+}
