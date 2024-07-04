@@ -210,7 +210,7 @@ chrome.commands.onCommand.addListener(async (command) => {
           reader.readAsDataURL(croppedBlob);
         });
 
-        return croppedCanvas;
+        return croppedDataUrl;
 
       } catch (error) {
         console.error('Error capturing or cropping screenshot:', error);
@@ -240,10 +240,35 @@ chrome.commands.onCommand.addListener(async (command) => {
 
     const rect = result[0]?.result || { x: 0, y: 0, width: 400, height: 1000 };
 
-    const img = await captureAndCropScreenshot(rect);
+    const imgUrl = await captureAndCropScreenshot(rect);
 
     // await addToClipboard(img);
-    await copyWhiteImageToClipboard();
+    await addToClipboard(imgUrl);
+
+    async function addToClipboard(imageUrl) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0].id;
+
+        // Inject the content script into the current active tab
+        chrome.scripting.executeScript(
+          {
+            target: { tabId: tabId },
+            files: ['content.js']
+          },
+          () => {
+            // Send a message to the content script to copy the image Blob to the clipboard
+            chrome.tabs.sendMessage(tabId, { action: 'copyImageUrlToClipboard', imageUrl: imageUrl }, (response) => {
+              if (response && response.status === 'success') {
+                console.log('Image URL processed and image blob added to clipboard successfully');
+              } else {
+                console.error('Failed to add image blob to clipboard:', response ? response.message : 'Unknown error');
+                // Handle errors or provide fallback method here
+              }
+            });
+          }
+        );
+      });
+    }
 
 
 
@@ -256,7 +281,7 @@ chrome.commands.onCommand.addListener(async (command) => {
         const blob = await response.blob();
 
         // Call function to add blob to clipboard
-        addToClipboard(blob);
+        await addToClipboard(blob);
 
       } catch (error) {
         console.error('Error copying white.png image to clipboard:', error);
@@ -264,7 +289,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
     }
 
-    async function addToClipboard(blob) {
+    async function addToClipboardV2(blob) {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tabId = tabs[0].id;
 
