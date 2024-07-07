@@ -1,6 +1,6 @@
 # AccessCapture
 
-AccessCapture is a Chrome extension developed by HPS to streamline accessibility testing workflows. It provides focused tools for inspecting and copying key accessibility-related information directly from web pages. This extension promotes best practices in web development and accessibility auditing, contributing to a more inclusive web environment.
+AccessCapture is a Chrome extension developed by HPS to streamline accessibility testing workflows. It provides focused tools for inspecting and copying interactives elements directly from web pages.
 
 ## Features
 

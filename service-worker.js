@@ -174,20 +174,28 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
 
     // Get the focused element's bounding box
+    // Ensuring the rec dont go out of screen
     const result = await chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: () => {
         const focusedElement = document.activeElement;
-        const rect = focusedElement?.getBoundingClientRect() || null;
-        const padding = 5; // Adjust the padding value as needed
-        return rect ? {
-          x: Math.floor(rect.left) - padding,
-          y: Math.floor(rect.top) - padding,
-          width: Math.floor(rect.width) + 2 * padding,
-          height: Math.floor(rect.height) + 2 * padding
-        } : null;
+        if (focusedElement && focusedElement !== document.body && focusedElement !== document.documentElement) {
+          const rect = focusedElement?.getBoundingClientRect() || null;
+          const padding = 5; // Adjust the padding value as needed
+          if (rect) {
+            const x = Math.max(Math.floor(rect.left) - padding, 0);
+            const y = Math.max(Math.floor(rect.top) - padding, 0);
+            const width = Math.min(Math.floor(rect.width) + 2 * padding, window.innerWidth - x);
+            const height = Math.min(Math.floor(rect.height) + 2 * padding, window.innerHeight - y);
+            return { x, y, width, height };
+          }
+          return null;
+        } else {
+          return "No element focused on";
+        }
       }
     });
+
 
     const rect = result[0]?.result || { x: 0, y: 0, width: 400, height: 1000 };
     const imgUrl = await captureAndCropScreenshot(rect);
